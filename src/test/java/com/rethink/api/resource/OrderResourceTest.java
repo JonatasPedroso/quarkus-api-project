@@ -106,32 +106,12 @@ public class OrderResourceTest {
     }
     
     @Test
-    @Disabled("Teste com erro 500 - Problemas com lazy loading e contexto transacional em testes REST")
-    public void testUpdateStatusEndpoint() {
-        // Este teste continua falhando devido a:
-        // 1. Falta de contexto transacional nos testes REST
-        // 2. Lazy loading não funciona fora de transação
-        // 3. Arquitetura retornando entidades JPA nos endpoints
-        //
-        // Soluções possíveis:
-        // - Implementar DTOs para os endpoints
-        // - Usar fetch EAGER (não recomendado)
-        // - Mockar o serviço ao invés de teste de integração
-    }
-    
-    @Test
     public void testInvalidStatusTransition() {
         given()
             .queryParam("status", "PENDING")
             .when().put("/orders/1/status")
             .then()
             .statusCode(400);
-    }
-    
-    @Test 
-    public void testAddItemEndpoint() {
-        // Skip - este teste está causando problemas de estado
-        // O teste seria melhor implementado com mocks ou banco isolado
     }
     
     @Test
@@ -143,12 +123,6 @@ public class OrderResourceTest {
             .when().post("/orders/1/items")
             .then()
             .statusCode(400);
-    }
-    
-    @Test
-    public void testRemoveItemEndpoint() {
-        // Skip - este teste está causando problemas de estado
-        // O teste seria melhor implementado com mocks ou banco isolado
     }
     
     @Test

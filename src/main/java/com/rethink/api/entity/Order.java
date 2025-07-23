@@ -76,8 +76,7 @@ public class Order extends PanacheEntity {
     
     public void removeItem(OrderItem item) {
         items.remove(item);
-        // Não definir item.order = null pois isso viola a validação
-        // A exclusão do item será feita pelo OrderService
+        
         recalculateTotal();
     }
     

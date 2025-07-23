@@ -7,7 +7,12 @@
       "Bash(chmod:*)",
       "Bash(./mvnw test:*)",
       "Bash(./mvnw:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(java:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(export MAVEN_OPTS=\"-Dmaven.multiModuleProjectDirectory=$PWD\")",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

@@ -98,7 +98,7 @@ public class OrderItemRepositoryTest extends BaseRepositoryTest {
         
         Order emptyOrder = new Order(customer);
         emptyOrder.status = Order.OrderStatus.PENDING;
-        emptyOrder.totalAmount = new BigDecimal("0.01"); // Valor mínimo positivo
+        emptyOrder.totalAmount = new BigDecimal("0.01"); 
         orderRepository.persist(emptyOrder);
         
         List<OrderItem> items = orderItemRepository.findByOrderId(emptyOrder.id);

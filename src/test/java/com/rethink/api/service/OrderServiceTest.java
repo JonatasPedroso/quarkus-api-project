@@ -269,7 +269,7 @@ public class OrderServiceTest {
     
     @Test
     void testRemoveItem() {
-        // Adicionar um segundo item ao pedido para que não fique vazio após remover um
+        
         Product secondProduct = new Product("Second Product", "Description", new BigDecimal("50.00"), 5);
         secondProduct.id = 2L;
         OrderItem secondItem = new OrderItem(secondProduct, 1, new BigDecimal("50.00"));
