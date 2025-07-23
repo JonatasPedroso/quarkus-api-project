@@ -14,7 +14,7 @@ public class ProductResourceTest {
     @Test
     public void testListAllEndpoint() {
         given()
-            .when().get("/api/products")
+            .when().get("/products")
             .then()
             .statusCode(200)
             .body("$.size()", greaterThan(0));
@@ -23,7 +23,7 @@ public class ProductResourceTest {
     @Test
     public void testGetByIdEndpoint() {
         given()
-            .when().get("/api/products/1")
+            .when().get("/products/1")
             .then()
             .statusCode(200)
             .body("name", is("Notebook Dell"))
@@ -33,7 +33,7 @@ public class ProductResourceTest {
     @Test
     public void testGetByIdNotFound() {
         given()
-            .when().get("/api/products/999")
+            .when().get("/products/999")
             .then()
             .statusCode(404);
     }
@@ -43,7 +43,7 @@ public class ProductResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body("{\"name\":\"Produto Teste\",\"description\":\"Descrição teste\",\"price\":100.00,\"quantity\":5}")
-            .when().post("/api/products")
+            .when().post("/products")
             .then()
             .statusCode(201)
             .body("name", is("Produto Teste"))
@@ -56,7 +56,7 @@ public class ProductResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body("{\"name\":\"\",\"price\":-10,\"quantity\":-5}")
-            .when().post("/api/products")
+            .when().post("/products")
             .then()
             .statusCode(400);
     }
@@ -66,7 +66,7 @@ public class ProductResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body("{\"name\":\"Notebook Dell Atualizado\",\"description\":\"Nova descrição\",\"price\":3000.00,\"quantity\":8}")
-            .when().put("/api/products/1")
+            .when().put("/products/1")
             .then()
             .statusCode(200)
             .body("name", is("Notebook Dell Atualizado"))
@@ -75,27 +75,23 @@ public class ProductResourceTest {
     
     @Test
     public void testDeleteEndpoint() {
-        // Primeiro criar um produto para deletar
         String location = given()
             .contentType(ContentType.JSON)
             .body("{\"name\":\"Produto Para Deletar\",\"price\":50.00,\"quantity\":1}")
-            .when().post("/api/products")
+            .when().post("/products")
             .then()
             .statusCode(201)
             .extract().header("Location");
         
-        // Extrair o ID da URL
         String id = location.substring(location.lastIndexOf("/") + 1);
         
-        // Deletar o produto
         given()
-            .when().delete("/api/products/" + id)
+            .when().delete("/products/" + id)
             .then()
             .statusCode(204);
         
-        // Verificar que foi deletado
         given()
-            .when().get("/api/products/" + id)
+            .when().get("/products/" + id)
             .then()
             .statusCode(404);
     }
@@ -104,7 +100,7 @@ public class ProductResourceTest {
     public void testSearchEndpoint() {
         given()
             .queryParam("name", "Mouse")
-            .when().get("/api/products/search")
+            .when().get("/products/search")
             .then()
             .statusCode(200)
             .body("$.size()", is(1))
@@ -114,7 +110,7 @@ public class ProductResourceTest {
     @Test
     public void testAvailableEndpoint() {
         given()
-            .when().get("/api/products/available")
+            .when().get("/products/available")
             .then()
             .statusCode(200)
             .body("$.size()", greaterThan(0))
@@ -124,7 +120,7 @@ public class ProductResourceTest {
     @Test
     public void testCountEndpoint() {
         given()
-            .when().get("/api/products/count")
+            .when().get("/products/count")
             .then()
             .statusCode(200)
             .body("total", greaterThan(0))

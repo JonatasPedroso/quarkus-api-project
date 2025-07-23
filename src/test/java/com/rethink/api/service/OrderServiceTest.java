@@ -162,7 +162,7 @@ public class OrderServiceTest {
         assertNotNull(result);
         assertEquals(1, result.items.size());
         assertEquals(new BigDecimal("200.00"), result.totalAmount);
-        assertEquals(8, testProduct.quantity); // 10 - 2
+        assertEquals(8, testProduct.quantity);
         verify(orderRepository, times(1)).persist(any(Order.class));
     }
     
@@ -186,7 +186,7 @@ public class OrderServiceTest {
         List<OrderItem> items = new ArrayList<>();
         OrderItem item = new OrderItem();
         item.product = testProduct;
-        item.quantity = 20; // More than available (10)
+        item.quantity = 20;
         items.add(item);
         
         when(customerService.findById(1L)).thenReturn(testCustomer);
@@ -227,7 +227,7 @@ public class OrderServiceTest {
         Order result = orderService.updateStatus(1L, Order.OrderStatus.CANCELLED);
         
         assertEquals(Order.OrderStatus.CANCELLED, result.status);
-        assertEquals(originalStock + 2, testProduct.quantity); // Stock restored
+        assertEquals(originalStock + 2, testProduct.quantity);
     }
     
     @Test
@@ -241,8 +241,8 @@ public class OrderServiceTest {
         Order result = orderService.addItem(1L, 2L, 3);
         
         assertEquals(2, result.items.size());
-        assertEquals(2, newProduct.quantity); // 5 - 3
-        assertEquals(new BigDecimal("350.00"), result.totalAmount); // 200 + 150
+        assertEquals(2, newProduct.quantity);
+        assertEquals(new BigDecimal("350.00"), result.totalAmount);
     }
     
     @Test
@@ -253,8 +253,8 @@ public class OrderServiceTest {
         Order result = orderService.addItem(1L, 1L, 1);
         
         assertEquals(1, result.items.size());
-        assertEquals(3, result.items.get(0).quantity); // 2 + 1
-        assertEquals(9, testProduct.quantity); // 10 - 1
+        assertEquals(3, result.items.get(0).quantity);
+        assertEquals(9, testProduct.quantity);
     }
     
     @Test
@@ -269,14 +269,22 @@ public class OrderServiceTest {
     
     @Test
     void testRemoveItem() {
+        // Adicionar um segundo item ao pedido para que não fique vazio após remover um
+        Product secondProduct = new Product("Second Product", "Description", new BigDecimal("50.00"), 5);
+        secondProduct.id = 2L;
+        OrderItem secondItem = new OrderItem(secondProduct, 1, new BigDecimal("50.00"));
+        secondItem.id = 2L;
+        testOrder.addItem(secondItem);
+        
         when(orderRepository.findByIdOptional(1L)).thenReturn(Optional.of(testOrder));
         doNothing().when(orderItemRepository).delete(any(OrderItem.class));
         
         int originalStock = testProduct.quantity;
         Order result = orderService.removeItem(1L, 1L);
         
-        assertEquals(0, result.items.size());
-        assertEquals(originalStock + 2, testProduct.quantity); // Stock restored
+        assertEquals(1, result.items.size());
+        assertEquals(secondItem, result.items.get(0));
+        assertEquals(originalStock + 2, testProduct.quantity);
         verify(orderItemRepository, times(1)).delete(testOrderItem);
     }
     
@@ -284,7 +292,6 @@ public class OrderServiceTest {
     void testRemoveLastItemFails() {
         when(orderRepository.findByIdOptional(1L)).thenReturn(Optional.of(testOrder));
         
-        // Try to remove the only item
         BadRequestException exception = assertThrows(BadRequestException.class, () -> {
             orderService.removeItem(1L, 1L);
         });
@@ -310,7 +317,7 @@ public class OrderServiceTest {
         int originalStock = testProduct.quantity;
         orderService.delete(1L);
         
-        assertEquals(originalStock + 2, testProduct.quantity); // Stock restored
+        assertEquals(originalStock + 2, testProduct.quantity);
         verify(orderRepository, times(1)).delete(testOrder);
     }
     

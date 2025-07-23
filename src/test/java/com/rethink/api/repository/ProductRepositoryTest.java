@@ -1,9 +1,10 @@
 package com.rethink.api.repository;
 
 import com.rethink.api.entity.Product;
-import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,18 +14,17 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
-@TestTransaction
-public class ProductRepositoryTest {
+@TestProfile(RepositoryTestProfile.class)
+public class ProductRepositoryTest extends BaseRepositoryTest {
     
     @Inject
     ProductRepository productRepository;
     
     @BeforeEach
+    @Transactional
     void setUp() {
-        // Clean database before each test
-        productRepository.deleteAll();
+        cleanDatabase();
         
-        // Create test products
         Product product1 = new Product("Test Product 1", "Description 1", new BigDecimal("100.00"), 10);
         Product product2 = new Product("Test Product 2", "Description 2", new BigDecimal("200.00"), 0);
         Product product3 = new Product("Another Product", "Description 3", new BigDecimal("150.00"), 5);
@@ -32,9 +32,12 @@ public class ProductRepositoryTest {
         productRepository.persist(product1);
         productRepository.persist(product2);
         productRepository.persist(product3);
+        entityManager.flush();
+        entityManager.clear();
     }
     
     @Test
+    @Transactional
     void testFindByName() {
         List<Product> products = productRepository.findByName("Test Product 1");
         
@@ -43,6 +46,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByNameNotFound() {
         List<Product> products = productRepository.findByName("Non Existent");
         
@@ -50,6 +54,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByNameContaining() {
         List<Product> products = productRepository.findByNameContaining("Test");
         
@@ -58,6 +63,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByNameContainingCaseInsensitive() {
         List<Product> products = productRepository.findByNameContaining("PRODUCT");
         
@@ -65,6 +71,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindAvailableProducts() {
         List<Product> products = productRepository.findAvailableProducts();
         
@@ -73,6 +80,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindProductsOrderByPriceAsc() {
         List<Product> products = productRepository.findProductsOrderByPriceAsc();
         
@@ -83,6 +91,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testCountAvailableProducts() {
         long count = productRepository.countAvailableProducts();
         
@@ -90,6 +99,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testPersistAndFind() {
         Product newProduct = new Product("New Product", "New Description", new BigDecimal("300.00"), 20);
         productRepository.persist(newProduct);
@@ -103,6 +113,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testUpdate() {
         Product product = productRepository.findByName("Test Product 1").get(0);
         product.price = new BigDecimal("120.00");
@@ -116,6 +127,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testDelete() {
         Product product = productRepository.findByName("Test Product 1").get(0);
         Long id = product.id;
@@ -127,6 +139,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testCount() {
         long count = productRepository.count();
         
@@ -134,6 +147,7 @@ public class ProductRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testListAll() {
         List<Product> products = productRepository.listAll();
         

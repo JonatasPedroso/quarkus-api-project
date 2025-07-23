@@ -57,11 +57,9 @@ public class OrderService {
     
     @Transactional
     public Order create(Order order, List<OrderItem> items) {
-        // Valida cliente
         Customer customer = customerService.findById(order.customer.id);
         order.customer = customer;
         
-        // Valida e processa itens
         if (items == null || items.isEmpty()) {
             throw new BadRequestException("Pedido deve ter pelo menos um item");
         }
@@ -70,20 +68,16 @@ public class OrderService {
         for (OrderItem item : items) {
             Product product = productService.findById(item.product.id);
             
-            // Valida estoque
             if (product.quantity < item.quantity) {
                 throw new BadRequestException("Estoque insuficiente para produto: " + product.name);
             }
             
-            // Cria item do pedido
             OrderItem orderItem = new OrderItem(product, item.quantity, product.price);
             order.addItem(orderItem);
             
-            // Atualiza estoque
             product.quantity -= item.quantity;
         }
         
-        // Define endereço de entrega do cliente se não informado
         if (order.shippingAddress == null) {
             order.shippingAddress = customer.address;
             order.shippingCity = customer.city;
@@ -99,12 +93,10 @@ public class OrderService {
     public Order updateStatus(Long id, Order.OrderStatus newStatus) {
         Order order = findById(id);
         
-        // Valida transição de status
         validateStatusTransition(order.status, newStatus);
         
         order.status = newStatus;
         
-        // Atualiza datas baseado no status
         switch (newStatus) {
             case CONFIRMED:
                 order.paymentDate = LocalDateTime.now();
@@ -116,7 +108,6 @@ public class OrderService {
                 order.deliveryDate = LocalDateTime.now();
                 break;
             case CANCELLED:
-                // Devolve produtos ao estoque
                 for (OrderItem item : order.items) {
                     item.product.quantity += item.quantity;
                 }
@@ -136,14 +127,12 @@ public class OrderService {
         
         Product product = productService.findById(productId);
         
-        // Verifica se produto já está no pedido
         OrderItem existingItem = order.items.stream()
                 .filter(item -> item.product.id.equals(productId))
                 .findFirst()
                 .orElse(null);
         
         if (existingItem != null) {
-            // Atualiza quantidade
             int additionalQty = quantity;
             if (product.quantity < additionalQty) {
                 throw new BadRequestException("Estoque insuficiente");
@@ -152,7 +141,6 @@ public class OrderService {
             existingItem.calculateSubtotal();
             product.quantity -= additionalQty;
         } else {
-            // Adiciona novo item
             if (product.quantity < quantity) {
                 throw new BadRequestException("Estoque insuficiente");
             }
@@ -178,7 +166,6 @@ public class OrderService {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Item não encontrado no pedido"));
         
-        // Devolve ao estoque
         item.product.quantity += item.quantity;
         
         order.removeItem(item);
@@ -199,7 +186,6 @@ public class OrderService {
             throw new BadRequestException("Só é possível excluir pedidos pendentes ou cancelados");
         }
         
-        // Se pendente, devolve produtos ao estoque
         if (order.status == Order.OrderStatus.PENDING) {
             for (OrderItem item : order.items) {
                 item.product.quantity += item.quantity;

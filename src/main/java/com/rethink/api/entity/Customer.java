@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Customer extends PanacheEntity {
@@ -59,6 +60,7 @@ public class Customer extends PanacheEntity {
     public LocalDateTime updatedAt;
     
     @OneToMany(mappedBy = "customer")
+    @JsonIgnore
     public List<Order> orders = new ArrayList<>();
     
     public Customer() {

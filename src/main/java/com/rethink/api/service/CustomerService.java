@@ -88,13 +88,11 @@ public class CustomerService {
     }
     
     private void validateUniqueFields(Customer customer, Long excludeId) {
-        // Valida email único
         var existingByEmail = customerRepository.findByEmail(customer.email);
         if (existingByEmail.isPresent() && !existingByEmail.get().id.equals(excludeId)) {
             throw new BadRequestException("Email já cadastrado: " + customer.email);
         }
         
-        // Valida CPF único
         var existingByCpf = customerRepository.findByCpf(customer.cpf);
         if (existingByCpf.isPresent() && !existingByCpf.get().id.equals(excludeId)) {
             throw new BadRequestException("CPF já cadastrado: " + customer.cpf);

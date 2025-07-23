@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class OrderItem extends PanacheEntity {
@@ -13,6 +14,7 @@ public class OrderItem extends PanacheEntity {
     @NotNull(message = "Pedido é obrigatório")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonIgnore
     public Order order;
     
     @NotNull(message = "Produto é obrigatório")

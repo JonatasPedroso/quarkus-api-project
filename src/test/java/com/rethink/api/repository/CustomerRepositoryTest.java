@@ -1,9 +1,10 @@
 package com.rethink.api.repository;
 
 import com.rethink.api.entity.Customer;
-import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,18 +15,17 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
-@TestTransaction
-public class CustomerRepositoryTest {
+@TestProfile(RepositoryTestProfile.class)
+public class CustomerRepositoryTest extends BaseRepositoryTest {
     
     @Inject
     CustomerRepository customerRepository;
     
     @BeforeEach
+    @Transactional
     void setUp() {
-        // Clean database before each test
-        customerRepository.deleteAll();
+        cleanDatabase();
         
-        // Create test customers
         Customer customer1 = new Customer("João Silva", "joao@email.com", "(11) 98765-4321", "123.456.789-00");
         customer1.city = "São Paulo";
         customer1.state = "SP";
@@ -44,9 +44,11 @@ public class CustomerRepositoryTest {
         customerRepository.persist(customer1);
         customerRepository.persist(customer2);
         customerRepository.persist(customer3);
+        customerRepository.flush();
     }
     
     @Test
+    @Transactional
     void testFindByEmail() {
         Optional<Customer> customer = customerRepository.findByEmail("joao@email.com");
         
@@ -56,6 +58,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByEmailNotFound() {
         Optional<Customer> customer = customerRepository.findByEmail("notfound@email.com");
         
@@ -63,6 +66,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByCpf() {
         Optional<Customer> customer = customerRepository.findByCpf("123.456.789-00");
         
@@ -72,6 +76,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByCpfNotFound() {
         Optional<Customer> customer = customerRepository.findByCpf("000.000.000-00");
         
@@ -79,6 +84,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByNameContaining() {
         List<Customer> customers = customerRepository.findByNameContaining("Silva");
         
@@ -87,6 +93,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByNameContainingCaseInsensitive() {
         List<Customer> customers = customerRepository.findByNameContaining("SANTOS");
         
@@ -95,6 +102,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByCity() {
         List<Customer> customers = customerRepository.findByCity("São Paulo");
         
@@ -103,6 +111,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByCityNotFound() {
         List<Customer> customers = customerRepository.findByCity("Brasília");
         
@@ -110,6 +119,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByState() {
         List<Customer> customers = customerRepository.findByState("SP");
         
@@ -118,6 +128,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByStateNotFound() {
         List<Customer> customers = customerRepository.findByState("DF");
         
@@ -125,27 +136,31 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testExistsByEmail() {
         assertTrue(customerRepository.existsByEmail("joao@email.com"));
         assertFalse(customerRepository.existsByEmail("notexist@email.com"));
     }
     
     @Test
+    @Transactional
     void testExistsByCpf() {
         assertTrue(customerRepository.existsByCpf("123.456.789-00"));
         assertFalse(customerRepository.existsByCpf("000.000.000-00"));
     }
     
     @Test
+    @Transactional
     void testFindRecentCustomers() {
         List<Customer> customers = customerRepository.findRecentCustomers(2);
         
         assertEquals(2, customers.size());
-        assertEquals("Pedro Oliveira", customers.get(0).name); // Most recent
-        assertEquals("Maria Santos", customers.get(1).name);  // Second most recent
+        assertEquals("Pedro Oliveira", customers.get(0).name);
+        assertEquals("Maria Santos", customers.get(1).name);
     }
     
     @Test
+    @Transactional
     void testPersistAndFind() {
         Customer newCustomer = new Customer("Novo Cliente", "novo@email.com", "(41) 98765-9999", "111.222.333-44");
         newCustomer.city = "Curitiba";
@@ -161,6 +176,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testUpdate() {
         Customer customer = customerRepository.findByEmail("joao@email.com").get();
         customer.phone = "(11) 99999-9999";
@@ -176,6 +192,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testDelete() {
         Customer customer = customerRepository.findByEmail("joao@email.com").get();
         Long id = customer.id;
@@ -187,6 +204,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testCount() {
         long count = customerRepository.count();
         
@@ -194,6 +212,7 @@ public class CustomerRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testListAll() {
         List<Customer> customers = customerRepository.listAll();
         

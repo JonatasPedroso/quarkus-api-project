@@ -4,8 +4,9 @@ import com.rethink.api.entity.Customer;
 import com.rethink.api.entity.Order;
 import com.rethink.api.entity.OrderItem;
 import com.rethink.api.entity.Product;
-import io.quarkus.test.TestTransaction;
+import jakarta.transaction.Transactional;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,8 +18,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
-@TestTransaction
-public class OrderRepositoryTest {
+@TestProfile(RepositoryTestProfile.class)
+public class OrderRepositoryTest extends BaseRepositoryTest {
     
     @Inject
     OrderRepository orderRepository;
@@ -34,13 +35,10 @@ public class OrderRepositoryTest {
     private Product testProduct;
     
     @BeforeEach
+    @Transactional
     void setUp() {
-        // Clean database
-        orderRepository.deleteAll();
-        customerRepository.deleteAll();
-        productRepository.deleteAll();
+        cleanDatabase();
         
-        // Create test data
         testCustomer1 = new Customer("Customer 1", "customer1@email.com", "(11) 98765-4321", "123.456.789-00");
         testCustomer2 = new Customer("Customer 2", "customer2@email.com", "(21) 98765-1234", "987.654.321-00");
         customerRepository.persist(testCustomer1);
@@ -49,7 +47,6 @@ public class OrderRepositoryTest {
         testProduct = new Product("Test Product", "Description", new BigDecimal("100.00"), 50);
         productRepository.persist(testProduct);
         
-        // Create test orders
         Order order1 = new Order(testCustomer1);
         order1.status = Order.OrderStatus.DELIVERED;
         order1.totalAmount = new BigDecimal("200.00");
@@ -74,7 +71,6 @@ public class OrderRepositoryTest {
         order4.totalAmount = new BigDecimal("150.00");
         order4.orderDate = LocalDateTime.now();
         
-        // Add items to orders
         OrderItem item1 = new OrderItem(testProduct, 2, new BigDecimal("100.00"));
         order1.addItem(item1);
         
@@ -85,9 +81,12 @@ public class OrderRepositoryTest {
         orderRepository.persist(order2);
         orderRepository.persist(order3);
         orderRepository.persist(order4);
+        entityManager.flush();
+        entityManager.clear();
     }
     
     @Test
+    @Transactional
     void testFindByCustomerId() {
         List<Order> orders = orderRepository.findByCustomerId(testCustomer1.id);
         
@@ -96,6 +95,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByStatus() {
         List<Order> pendingOrders = orderRepository.findByStatus(Order.OrderStatus.PENDING);
         
@@ -104,6 +104,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByCustomerIdAndStatus() {
         List<Order> orders = orderRepository.findByCustomerIdAndStatus(testCustomer1.id, Order.OrderStatus.PENDING);
         
@@ -113,6 +114,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindByDateRange() {
         LocalDateTime startDate = LocalDateTime.now().minusDays(3);
         LocalDateTime endDate = LocalDateTime.now();
@@ -127,6 +129,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindRecentOrders() {
         List<Order> recentOrders = orderRepository.findRecentOrders(2);
         
@@ -135,16 +138,17 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testFindPendingOrders() {
         List<Order> pendingOrders = orderRepository.findPendingOrders();
         
         assertEquals(2, pendingOrders.size());
         assertTrue(pendingOrders.stream().allMatch(o -> o.status == Order.OrderStatus.PENDING));
-        // Check ordered by date
         assertTrue(pendingOrders.get(0).orderDate.isBefore(pendingOrders.get(1).orderDate));
     }
     
     @Test
+    @Transactional
     void testFindOrdersToShip() {
         List<Order> ordersToShip = orderRepository.findOrdersToShip();
         
@@ -154,6 +158,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testCountByStatus() {
         assertEquals(2L, orderRepository.countByStatus(Order.OrderStatus.PENDING));
         assertEquals(1L, orderRepository.countByStatus(Order.OrderStatus.CONFIRMED));
@@ -162,12 +167,14 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testCountByCustomerId() {
         assertEquals(2L, orderRepository.countByCustomerId(testCustomer1.id));
         assertEquals(2L, orderRepository.countByCustomerId(testCustomer2.id));
     }
     
     @Test
+    @Transactional
     void testFindOrdersWithItems() {
         List<Order> ordersWithItems = orderRepository.findOrdersWithItems();
         
@@ -176,6 +183,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testPersistAndFind() {
         Order newOrder = new Order(testCustomer1);
         newOrder.status = Order.OrderStatus.PROCESSING;
@@ -191,6 +199,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testUpdate() {
         Order order = orderRepository.findByStatus(Order.OrderStatus.PENDING).get(0);
         order.status = Order.OrderStatus.CONFIRMED;
@@ -204,6 +213,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testDelete() {
         Order order = orderRepository.findByStatus(Order.OrderStatus.PENDING).get(0);
         Long id = order.id;
@@ -215,6 +225,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testCount() {
         long count = orderRepository.count();
         
@@ -222,6 +233,7 @@ public class OrderRepositoryTest {
     }
     
     @Test
+    @Transactional
     void testListAll() {
         List<Order> orders = orderRepository.listAll();
         

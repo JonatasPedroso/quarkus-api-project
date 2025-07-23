@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "customer_order")
@@ -75,7 +76,8 @@ public class Order extends PanacheEntity {
     
     public void removeItem(OrderItem item) {
         items.remove(item);
-        item.order = null;
+        // Não definir item.order = null pois isso viola a validação
+        // A exclusão do item será feita pelo OrderService
         recalculateTotal();
     }
     
